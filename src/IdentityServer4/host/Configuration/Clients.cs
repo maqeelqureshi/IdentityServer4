@@ -385,16 +385,20 @@ namespace Host.Configuration
                 //////////////////////////////////////////
                 new Client
                 {
+                    AllowOfflineAccess = true,
                     ClientId = "js_oauth",
                     ClientName = "JavaScript OAuth 2.0 Client",
-                    ClientUri = "http://identityserver.io",
+                    //ClientUri = "http://identityserver.io",
                     //LogoUri = "https://pbs.twimg.com/profile_images/1612989113/Ki-hanja_400x400.png",
 
                     AllowedGrantTypes = GrantTypes.Implicit,
                     AllowAccessTokensViaBrowser = true,
+                    
+                    RedirectUris = { "http://localhost:4200/authorized" },
 
-                    RedirectUris = { "http://localhost:28895/index.html" },
-                    AllowedScopes = { "api1", "api2.read_only" }
+                    AllowedScopes = { "APIServer1", "openid" },
+                    AllowedCorsOrigins = { "http://localhost:4200", "http://localhost:6544" }
+
                 },
                 
                 ///////////////////////////////////////////
@@ -402,25 +406,24 @@ namespace Host.Configuration
                 //////////////////////////////////////////
                 new Client
                 {
+                    RequireConsent = false,
                     ClientId = "js_oidc",
                     ClientName = "JavaScript OIDC Client",
-                    ClientUri = "http://identityserver.io",
+                    //ClientUri = "http://identityserver.io",
                     //LogoUri = "https://pbs.twimg.com/profile_images/1612989113/Ki-hanja_400x400.png",
-
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequirePkce = true,
+                    AccessTokenLifetime = 3600*100,
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowAccessTokensViaBrowser = true,
                     RequireClientSecret = false,
-                    AccessTokenType = AccessTokenType.Jwt,
+                    AccessTokenType = AccessTokenType.Reference,
+                    AllowOfflineAccess = true,
 
-                    RedirectUris = 
+                    RedirectUris =
                     {
-                        "http://localhost:7017/index.html",
-                        "http://localhost:7017/callback.html",
-                        "http://localhost:7017/silent.html",
-                        "http://localhost:7017/popup.html"
+                        "http://localhost:4200/authorized"
                     },
-
-                    PostLogoutRedirectUris = { "http://localhost:7017/index.html" },
+                    AlwaysIncludeUserClaimsInIdToken = true,
+                    PostLogoutRedirectUris = { "http://localhost:4200" },
                     AllowedCorsOrigins = { "http://localhost:7017" },
 
                     AllowedScopes =
@@ -428,7 +431,7 @@ namespace Host.Configuration
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                        "api1", "api2.read_only", "api2.full_access"
+                        "APIServer1", "api2.read_only", "api2.full_access", "offline_access"
                     }
                 },
 

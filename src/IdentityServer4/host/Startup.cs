@@ -2,16 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using DAL.Core;
+using DAL.Persistence;
 using Host.Configuration;
+using Host.Configuration.Custom;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Quickstart.UI;
+using IdentityServer4.Services;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
@@ -28,10 +34,38 @@ namespace Host
             _config = config;
 
             IdentityModelEventSource.ShowPII = true;
+            string appsettingsFile = "appsettings.json";
+            
+            var builder = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile(appsettingsFile);
+
+            _config = builder.Build();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
+            Common.IConfig config = new Common.Config()
+            {
+                AuthServer = _config["AppSettings:IdentityServer"],
+                ConnectionString = _config["ConnectionStrings:connectionString"],
+                AuthGoogleClientId = _config["AppSettings:GoogleClientId"],
+                AuthGoogleClientSecret = _config["AppSettings:GoogleClientSecret"],
+
+                AuthClientId = _config["AppSettings:ClientId"],
+                AuthRedirectUris = _config["AppSettings:RedirectUris"],
+
+                AuthPostLogoutRedirectUris = _config["AppSettings:PostLogoutRedirectUris"],
+                AuthPostAllowedCorsOrigins = _config["AppSettings:AllowedCorsOrigins"],
+            };
+
+            services.AddSingleton<Common.IConfig>(config);
+
+            IUnitOfWork unitofWork = new UnitOfWork(config);
+            //services.AddSingleton<IUnitOfWork>(unitofWork);
+            // IUnitOfWork unitofWork = new UnitOfWork(config);
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddControllersWithViews();
 
             // configures IIS out-of-proc settings (see https://github.com/aspnet/AspNetCore/issues/14882)
@@ -67,10 +101,10 @@ namespace Host
                 .AddExtensionGrantValidator<Extensions.NoSubjectExtensionGrantValidator>()
                 .AddJwtBearerClientAuthentication()
                 .AddAppAuthRedirectUriValidator()
-                .AddTestUsers(TestUsers.Users)
+                //.AddTestUsers(TestUsers.Users)
                 .AddMutualTlsSecretValidators();
 
-            services.AddExternalIdentityProviders();
+            //services.AddExternalIdentityProviders();
             services.AddLocalApiAuthentication(principal =>
             {
                 principal.Identities.First().AddClaim(new Claim("additional_claim", "additional_value"));
@@ -78,11 +112,16 @@ namespace Host
                 return Task.FromResult(principal);
             });
 
+            services.AddTransient<IProfileService, ProfileService>();
+            services.AddTransient<IClaimsService, ClaimsService>();
+            services.AddTransient<IPersistedGrantStore, TokenStore>();
+            services.AddTransient<ICustomUserStore<Entities.User>, UserStore>();
+
             //services.AddAuthentication()
             //   .AddCertificate("x509", options =>
             //   {
             //       options.RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck;
-                   
+
             //       options.Events = new CertificateAuthenticationEvents
             //       {
             //           OnValidateCertificate = context =>

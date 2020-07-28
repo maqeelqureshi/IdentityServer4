@@ -33,7 +33,7 @@ namespace Host.Configuration
                 new ApiResource(LocalApi.ScopeName),
 
                 // simple version with ctor
-                new ApiResource("api1", "Some API 1")
+                new ApiResource("APIServer1", "Some API 1")
                 {
                     // this is needed for introspection when using reference tokens
                     ApiSecrets = { new Secret("secret".Sha256()) }
@@ -42,7 +42,7 @@ namespace Host.Configuration
                 // expanded version if more control is needed
                 new ApiResource
                 {
-                    Name = "api2",
+                    Name = "APIServer",
 
                     ApiSecrets =
                     {
@@ -55,28 +55,28 @@ namespace Host.Configuration
                         JwtClaimTypes.Email
                     },
 
-                    Scopes =
-                    {
-                        new Scope
-                        {
-                            Name = "api2.full_access",
-                            DisplayName = "Full access to API 2"
-                        },
-                        new Scope
-                        {
-                            Name = "api2.read_only",
-                            DisplayName = "Read only access to API 2"
-                        },
-                        new Scope
-                        {
-                            Name = "api2.internal",
-                            ShowInDiscoveryDocument = false,
-                            UserClaims =
-                            {
-                                "internal_id"
-                            }
-                        }
-                    }
+                    //Scopes =
+                    //{
+                    //    new Scope
+                    //    {
+                    //        Name = "api2.full_access",
+                    //        DisplayName = "Full access to API 2"
+                    //    },
+                    //    new Scope
+                    //    {
+                    //        Name = "api2.read_only",
+                    //        DisplayName = "Read only access to API 2"
+                    //    },
+                    //    new Scope
+                    //    {
+                    //        Name = "api2.internal",
+                    //        ShowInDiscoveryDocument = false,
+                    //        UserClaims =
+                    //        {
+                    //            "internal_id"
+                    //        }
+                    //    }
+                    //}
                 }
             };
         }
